@@ -1,0 +1,14 @@
+--- reference
++++ portable
+@@ -126,9 +126,9 @@
+ < ./histexp5.sub: line 20: echo: write error: Broken pipe
+ < ./histexp5.sub: line 21: echo: write error: Broken pipe
+ 223d220
++< ./histexp5.sub: line 27: echo: write error: Broken pipe
++226d222
+ < ./histexp5.sub: line 26: echo: write error: Broken pipe
+-230d226
+-< ./histexp5.sub: line 27: echo: write error: Broken pipe
+ run-history
+ warning: all of these tests will fail if history has not been compiled
+ warning: into the shell

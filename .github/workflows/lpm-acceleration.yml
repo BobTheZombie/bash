@@ -1,0 +1,24 @@
+name: LPM acceleration
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        profile: [portable, native]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Bash and numeric extensions
+        run: lpm/build.sh ${{ matrix.profile }} "$RUNNER_TEMP/bash-build"
+      - name: Native engine with sanitizers
+        run: |
+          cc -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer -Ilpm lpm/test-engine.c lpm/jit.c lpm/vector.c -o "$RUNNER_TEMP/test-engine"
+          "$RUNNER_TEMP/test-engine"
+      - name: Arithmetic differential tests
+        run: python3 lpm/test.py "$RUNNER_TEMP/bash-build/bash" "$RUNNER_TEMP/bash-build/lpm-accel.so"
+      - name: Upstream suite
+        run: make -C "$RUNNER_TEMP/bash-build" tests

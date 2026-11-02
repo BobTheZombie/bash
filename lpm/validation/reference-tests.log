@@ -1,0 +1,399 @@
+make: Entering directory '<workspace>/build-reference'
+rm -f execute_cmd.o
+gcc  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"linux-gnu"' -DCONF_MACHTYPE='"x86_64-pc-linux-gnu"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I../lpm-bash -I../lpm-bash/include -I../lpm-bash/lib  -Wno-parentheses -Wno-format-security   -g -O2 -c ../lpm-bash/execute_cmd.c
+rm -f y.tab.o
+gcc  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"linux-gnu"' -DCONF_MACHTYPE='"x86_64-pc-linux-gnu"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I../lpm-bash -I../lpm-bash/include -I../lpm-bash/lib  -Wno-parentheses -Wno-format-security   -g -O2 -c ../lpm-bash/y.tab.c
+rm -f print_cmd.o
+gcc  -DPROGRAM='"bash"' -DCONF_HOSTTYPE='"x86_64"' -DCONF_OSTYPE='"linux-gnu"' -DCONF_MACHTYPE='"x86_64-pc-linux-gnu"' -DCONF_VENDOR='"pc"' -DLOCALEDIR='"/usr/share/locale"' -DPACKAGE='"bash"' -DSHELL -DHAVE_CONFIG_H   -I.  -I../lpm-bash -I../lpm-bash/include -I../lpm-bash/lib  -Wno-parentheses -Wno-format-security   -g -O2 -c ../lpm-bash/print_cmd.c
+../lpm-bash/print_cmd.c: In function ‘make_command_string_internal’:
+../lpm-bash/print_cmd.c:181:14: warning: zero-length gnu_printf format string [-Wformat-zero-length]
+  181 |     cprintf ("");
+      |              ^~
+../lpm-bash/print_cmd.c: In function ‘print_simple_command’:
+../lpm-bash/print_cmd.c:1007:14: warning: zero-length gnu_printf format string [-Wformat-zero-length]
+ 1007 |     cprintf ("");
+      |              ^~
+make[1]: Entering directory '<workspace>/build-reference/builtins'
+make[1]: 'pipesize.h' is up to date.
+make[1]: Leaving directory '<workspace>/build-reference/builtins'
+
+	  ***********************************************************
+	  *                                                         *
+	  * GNU bash, version 5.3.20(1)-release (x86_64-pc-linux-gnu)
+	  *                                                         *
+	  ***********************************************************
+
+rm -f bash
+gcc -L./builtins -L./lib/readline -L./lib/readline -L./lib/glob -L./lib/tilde  -L./lib/sh  -L./lib/termcap -rdynamic -g -O2   -o bash shell.o eval.o y.tab.o general.o make_cmd.o print_cmd.o dispose_cmd.o execute_cmd.o variables.o copy_cmd.o error.o expr.o flags.o jobs.o subst.o hashcmd.o hashlib.o mailcheck.o trap.o input.o unwind_prot.o pathexp.o sig.o test.o version.o alias.o array.o arrayfunc.o assoc.o braces.o bracecomp.o bashhist.o bashline.o  list.o stringlib.o locale.o findcmd.o redir.o pcomplete.o pcomplib.o syntax.o xmalloc.o  -lbuiltins -lglob -lsh -lreadline -lhistory ./lib/termcap/libtermcap.a -ltilde     -ldl
+/usr/bin/ld: ./lib/sh/libsh.a(tmpfile.o): in function `sh_mktmpname':
+<workspace>/build-reference/lib/sh/../../../lpm-bash/lib/sh/tmpfile.c:173:(.text+0x18b): warning: the use of `mktemp' is dangerous, better use `mkstemp' or `mkdtemp'
+ls -l bash
+-rwxr-xr-x 1 root root 4848096 Nov  3 06:54 bash
+size bash
+   text	   data	    bss	    dec	    hex	filename
+1304286	  49044	  47192	1400522	 155eca	bash
+<workspace>/build-reference/bash: the test suite should not be run as root
+
+Testing <workspace>/build-reference/bash
+version: 5.3.20(1)-release
+versinfo: 5 3 20 1 release x86_64-pc-linux-gnu
+HOSTTYPE = x86_64
+OSTYPE = linux-gnu
+MACHTYPE = x86_64-pc-linux-gnu
+Any output from any test, unless otherwise noted, indicates a possible anomaly
+run-alias
+run-appendop
+run-arith
+run-arith-for
+run-array
+warning: all of these tests will fail if arrays have not
+warning: been compiled into the shell
+warning: the BASH_ARGC and BASH_ARGV tests will fail if debugging support
+warning: has not been compiled into the shell
+run-array2
+warning: all of these tests will fail if arrays have not
+warning: been compiled into the shell
+run-assoc
+warning: all of these tests will fail if arrays have not
+warning: been compiled into the shell
+run-attr
+run-braces
+run-builtins
+warning: some of these tests may fail if process substitution has not
+warning: been compiled into the shell or if the OS does not provide
+warning: /dev/fd.
+run-case
+run-casemod
+run-complete
+run-comsub
+27d26
+< ./comsub.tests: line 90: echo: write error: Broken pipe
+run-comsub-eof
+run-comsub-posix
+run-comsub2
+21d20
+< ./comsub2.tests: line 64: echo: write error: Broken pipe
+run-cond
+warning: all of these tests will fail if the conditional command has not
+warning: been compiled into the shell
+warning: some of these tests will fail if extended pattern matching has not
+warning: been compiled into the shell
+warning: the text of system error messages may vary between systems and
+warning: produce diff output.
+run-coproc
+run-cprint
+run-dbg-support
+run-dbg-support2
+run-dirstack
+run-dollars
+run-dynvar
+run-errors
+run-execscript
+warning: the text of a system error message may vary between systems and
+warning: produce diff output.
+warning: UNIX versions number signals differently.
+warning: If output differing only in line numbers is produced, please
+warning: do not consider this a test failure.
+warning: if the text of the error messages concerning `notthere' or
+warning: `/tmp/bash-notthere' not being found or `/' being a directory
+warning: produce diff output, please do not consider this a test failure
+warning: if diff output differing only in the location of the bash
+warning: binary appears, please do not consider this a test failure
+1d0
+< execscript: the test suite should not be run as root
+30,31d28
+< trap -- 'echo USR1' SIGUSR1
+< trap -- '' SIGPIPE
+32a30
+> trap -- 'echo USR1' SIGUSR1
+38,39d35
+< trap -- 'echo USR1' SIGUSR1
+< trap -- '' SIGPIPE
+40a37
+> trap -- 'echo USR1' SIGUSR1
+84d80
+< exec7.sub: the test suite should not be run as root
+86,87d81
+< bash: cannot set terminal process group (1): Inappropriate ioctl for device
+< bash: no job control in this shell
+106d99
+< trap -- '' SIGPIPE
+110d102
+< trap -- '' SIGPIPE
+114d105
+< trap -- '' SIGPIPE
+run-exp-tests
+run-exportfunc
+run-extglob
+run-extglob2
+run-extglob3
+run-func
+warning: if you have exported functions defined in your environment,
+warning: they may show up as diff output.
+warning: if so, please do not consider this a test failure
+run-getopts
+run-glob-bracket
+run-glob-test
+2,3d1
+< glob2.sub: warning: you do not have the zh_TW.big5 locale installed;
+< glob2.sub: warning: that may cause some of these tests to fail.
+9d6
+< ./glob2.sub: line 44: warning: setlocale: LC_ALL: cannot change locale (zh_TW.big5): No such file or directory
+11c8
+< argv[1] = <AαB>
+---
+> argv[1] = <A�\B>
+14,15c11,12
+< argv[1] = <aαb>
+< 0000000 141 316 261 142
+---
+> argv[1] = <a�\b>
+> 0000000 141 243 134 142
+18,19d14
+< ./glob2.sub: line 65: warning: setlocale: LC_ALL: cannot change locale (zh_TW.big5)
+< <workspace>/build-reference/bash: warning: setlocale: LC_ALL: cannot change locale (zh_TW.big5)
+79d73
+< glob5.sub: the test suite should not be run as root
+108d101
+< glob6.sub: the test suite should not be run as root
+run-globstar
+run-heredoc
+warning: UNIX versions number signals and schedule processes differently.
+warning: If output differing only in line numbers is produced, please
+warning: do not consider this a test failure.
+run-herestr
+run-histexpand
+warning: all of these tests will fail if history has not been compiled
+warning: into the shell
+217,218d216
+< ./histexp5.sub: line 20: echo: write error: Broken pipe
+< ./histexp5.sub: line 21: echo: write error: Broken pipe
+223d220
+< ./histexp5.sub: line 26: echo: write error: Broken pipe
+230d226
+< ./histexp5.sub: line 27: echo: write error: Broken pipe
+run-history
+warning: all of these tests will fail if history has not been compiled
+warning: into the shell
+320,321d319
+< bash: cannot set terminal process group (1): Inappropriate ioctl for device
+< bash: no job control in this shell
+327,328d324
+< bash: cannot set terminal process group (1): Inappropriate ioctl for device
+< bash: no job control in this shell
+336,337d331
+< bash: cannot set terminal process group (1): Inappropriate ioctl for device
+< bash: no job control in this shell
+342,343d335
+< bash: cannot set terminal process group (1): Inappropriate ioctl for device
+< bash: no job control in this shell
+352,353d343
+< bash: cannot set terminal process group (1): Inappropriate ioctl for device
+< bash: no job control in this shell
+364,365d353
+< bash: cannot set terminal process group (1): Inappropriate ioctl for device
+< bash: no job control in this shell
+372,373d359
+< bash: cannot set terminal process group (1): Inappropriate ioctl for device
+< bash: no job control in this shell
+run-ifs
+run-ifs-posix
+run-input-test
+run-intl
+intl2.sub: warning: you do not have the de_DE.UTF-8 locale installed;
+intl2.sub: that will cause some of these tests to fail.
+unicode1.sub: warning: you do not have the fr_FR.ISO8859-1 locale installed;
+unicode1.sub: that will cause some of these tests to be skipped.
+unicode1.sub: warning: you do not have the zh_TW.BIG5 locale installed;
+unicode1.sub: that will cause some of these tests to be skipped.
+unicode1.sub: warning: you do not have the ja_JP.SJIS locale installed;
+unicode1.sub: that will cause some of these tests to be skipped.
+13a14
+> 1,0000
+18,19c19
+< 1.0000
+< 1.0000
+---
+> 1,0000
+24c24
+< Passed all 1318 Unicode tests
+---
+> Passed all 1770 Unicode tests
+run-invert
+run-invocation
+run-iquote
+run-jobs
+warning: some of these tests may fail if job control has not been compiled
+warning: into the shell
+warning: there may be a message regarding a cat process dying due to a
+warning: SIGHUP.  Please disregard.
+run-lastpipe
+3d2
+< ./lastpipe.tests: line 46: echo: write error: Broken pipe
+run-mapfile
+run-more-exp
+run-nameref
+warning: some of these tests will fail if arrays have not
+warning: been compiled into the shell
+run-new-exp
+warning: two of these tests will fail if your OS does not support
+warning: named pipes or the /dev/fd filesystem.  If the tests of the
+warning: process substitution mechanism fail, please do not consider
+warning: this a test failure
+warning: if you have exported variables beginning with the string _Q,
+warning: diff output may be generated.  If so, please do not consider
+warning: this a test failure
+1d0
+< new-exp.tests: the test suite should not be run as root
+655,660c654,659
+< argv[1] = <host(2)[5.3]# >
+< argv[1] = <~# >
+< argv[1] = <^A[0]~# >
+< argv[1] = <^A^G^B[0:1]~\# >
+< argv[1] = </ bash# >
+< argv[1] = <1^J/ bash# >
+---
+> argv[1] = <host(2)[5.3]$ >
+> argv[1] = <~$ >
+> argv[1] = <^A[0]~$ >
+> argv[1] = <^A^G^B[0:1]~\$ >
+> argv[1] = </ bash$ >
+> argv[1] = <1^J/ bash$ >
+run-nquote
+run-nquote1
+warning: several of these tests will fail if arrays have not
+warning: been compiled into the shell.
+run-nquote2
+warning: several of these tests will fail if arrays have not
+warning: been compiled into the shell.
+run-nquote3
+warning: several of these tests will fail if arrays have not
+warning: been compiled into the shell.
+run-nquote4
+warning: some of these tests will fail if you do not have UTF-8
+warning: locales installed on your system
+run-nquote5
+run-parser
+run-posix2
+run-posixexp
+run-posixexp2
+run-posixpat
+run-posixpipe
+run-precedence
+run-printf
+391,392c391
+< ./printf7.sub: line 88: printf: Value too large for defined data type
+<
+---
+> XY
+run-procsub
+warning: all of these tests will fail if process substitution has not
+warning: been compiled into the shell or if the OS does not provide
+warning: FIFOs or /dev/fd. Some tests may fail if the OS does not
+warning: provide FIFOs.
+run-quote
+run-quotearray
+run-read
+warning: please do not consider output differing only in the amount of
+warning: white space to be an error.
+55,60c55,58
+< ./read2.sub: line 18: /dev/tty: No such device or address
+< 1
+< 4
+< ./read2.sub: line 27: /dev/tty: No such device or address
+< 1
+< 4
+---
+> timeout 1: ok
+> unset or null 1
+> timeout 2: ok
+> unset or null 2
+62,63c60,61
+< 4
+< ./read2.sub: line 45: /dev/tty: No such device or address
+---
+> unset or null 3
+> ./read2.sub: line 45: read: -3: invalid timeout specification
+65c63
+< 4
+---
+>
+93d90
+< 0
+94a92
+> timeout 1: ok
+96c94
+< 1
+---
+> timeout 2: ok
+98,99c96
+< ./read7.sub: line 37: /dev/tty: No such device or address
+< 1
+---
+> timeout 3: ok
+104,105c101
+< ./read7.sub: line 64: /dev/tty: No such device or address
+< abcde
+---
+>
+run-redir
+warning: the text of a system error message may vary between systems and
+warning: produce diff output.
+warning: if the text of an error message concerning `redir1.*' not being
+warning: found or messages concerning bad file descriptors produce diff
+warning: output, please do not consider it a test failure
+run-rhs-exp
+run-rsh
+run-set-e
+run-set-x
+run-shopt
+run-strip
+run-test
+1d0
+< test-tests: the test suite should not be run as root
+61c60
+< ./test.tests: line 118: /dev/tty: No such device or address
+---
+> 0
+143c142
+< 1
+---
+> 0
+run-tilde
+run-tilde2
+run-trap
+warning: UNIX versions number signals and schedule processes differently.
+warning: If output differing only in line numbers is produced, please
+warning: do not consider this a test failure.
+7d6
+< trap -- '' SIGPIPE
+17d15
+< trap -- '' SIGPIPE
+29d26
+< trap -- '' SIGPIPE
+45d41
+< trap -- '' SIGPIPE
+53d48
+< trap -- '' SIGPIPE
+59d53
+< trap -- '' SIGPIPE
+141d134
+< trap -- '' SIGPIPE
+run-type
+run-varenv
+warning: some of these tests will fail if arrays have not
+warning: been compiled into the shell
+280d279
+< trap -- '' SIGPIPE
+283d281
+< trap -- '' SIGPIPE
+286d283
+< trap -- '' SIGPIPE
+289d285
+< trap -- '' SIGPIPE
+run-vredir
+warning: the text of a system error message may vary between systems and
+warning: produce diff output.
+122d121
+< ./vredir8.sub: line 30: /dev/tty: No such device or address
+make: Leaving directory '<workspace>/build-reference'
