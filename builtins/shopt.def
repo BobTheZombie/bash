@@ -171,11 +171,14 @@ typedef int shopt_set_func_t (char *, int);
 /* If you add a new variable name here, make sure to set the default value
    appropriately in reset_shopt_options. */
 
+extern int arithmetic_jit;
+
 static struct {
   char *name;
   int  *value;
   shopt_set_func_t *set_func;
 } shopt_vars[] = {
+  { "arithmetic_jit", &arithmetic_jit, (shopt_set_func_t *)NULL },
 #if defined (ARRAY_VARS)
   { "array_expand_once", &expand_once_flag, set_array_expand },
   { "assoc_expand_once", &expand_once_flag, set_array_expand },
@@ -354,6 +357,7 @@ shopt_builtin (WORD_LIST *list)
 void
 reset_shopt_options (void)
 {
+  arithmetic_jit = 1;
   autocd = cdable_vars = cdspelling = 0;
   check_hashed_filenames = CHECKHASH_DEFAULT;
   check_window_size = CHECKWINSIZE_DEFAULT;

@@ -1,6 +1,7 @@
 ./shopt.tests: line 15: shopt: -z: invalid option
 shopt: usage: shopt [-pqsu] [-o] [optname ...]
 --
+shopt -s arithmetic_jit
 shopt -u array_expand_once
 shopt -u assoc_expand_once
 shopt -u autocd
@@ -65,6 +66,7 @@ shopt -u huponexit
 shopt -u checkwinsize
 shopt -s sourcepath
 --
+shopt -s arithmetic_jit
 shopt -s cdspell
 shopt -s cmdhist
 shopt -s complete_fullquote

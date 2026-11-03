@@ -82,6 +82,7 @@
 #include "bashintl.h"
 
 #include "shell.h"
+#include "lpm-jit.h"
 #include "arrayfunc.h"
 #include "execute_cmd.h"
 #include "flags.h"
@@ -445,7 +446,24 @@ evalexp (const char *expr, int flags, int *validp)
       return (0);
     }
 
-  val = subexpr (expr);
+  /* Native code handles only a guarded, side-effect-free RHS and at most
+     one scalar assignment. Keep binding and all fallback/error handling in
+     the upstream evaluator. Nested recursive arithmetic always stays there. */
+  {
+    const char *target;
+    intmax_t assigned;
+    char ibuf[INT_STRLEN_BOUND (intmax_t) + 1];
+    if (expr_depth == 0 && lpm_jit_eval (expr, &val, &target, &assigned))
+      {
+        if (target)
+          {
+            snprintf (ibuf, sizeof (ibuf), "%jd", assigned);
+            expr_bind_variable (target, ibuf);
+          }
+      }
+    else
+      val = subexpr (expr);
+  }
 
   if (validp)
     *validp = 1;

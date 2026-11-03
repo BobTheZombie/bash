@@ -114,6 +114,7 @@ kill
 let
 local
 logout
+lpmjitctl
 mapfile
 popd
 printf
@@ -172,6 +173,7 @@ privileged
 verbose
 vi
 xtrace
+arithmetic_jit
 array_expand_once
 assoc_expand_once
 autocd
@@ -267,6 +269,7 @@ kill
 let
 local
 logout
+lpmjitctl
 mapfile
 popd
 printf
@@ -328,6 +331,7 @@ kill
 let
 local
 logout
+lpmjitctl
 mapfile
 popd
 printf

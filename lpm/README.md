@@ -1,138 +1,148 @@
-# LPM Bash acceleration: experimental first milestone
+# CPU arithmetic JIT and numeric extensions
 
-This source fork retains GNU Bash's parser, executor, builtins and upstream
-license. Ordinary scripts execute through the upstream interpreter. Extensions
-are explicitly loaded; this is **not a transparent whole-script JIT** and does
-not accelerate external programs launched by a script.
+LPM Bash retains GNU Bash's command parser and executor. Its core arithmetic
+evaluator now uses guarded native code for frequently used expressions in
+existing scripts. No compiler process, LLVM dependency, persistent code file,
+or script rewriting is involved.
 
-Upstream snapshot: `tianon/mirror-bash`, commit
-`9c465866b7d849378369ef700cbe2965aa9691e3` (Bash 5.3 patch 20).
-Canonical upstream: https://git.savannah.gnu.org/git/bash.git
+Upstream base: Bash 5.3 patch 20, commit
+`9c465866b7d849378369ef700cbe2965aa9691e3`, mirrored from
+https://git.savannah.gnu.org/git/bash.git through `tianon/mirror-bash`.
 
-## Build
+## Build and run
 
 ```bash
 lpm/build.sh portable ../build-portable
 lpm/build.sh zen2 ../build-zen2
+../build-zen2/bash your-script.sh
 ```
 
-Profiles: `portable` (x86-64 baseline), `zen2`, `zen3`, `zen4`, `native` and
-`generic` (no architecture flags; for other architectures). Zen 2 is appropriate
-for the LPM Ryzen 4500U target. Architecture-specific executables must only run
-on CPUs supporting the instructions selected by the compiler. AVX2 in the
-portable numeric extension uses runtime CPU feature detection and a scalar
-fallback. Native JIT emission is currently Linux/System V x86-64 only; other
-platforms use the bytecode interpreter. This milestone has been tested on Linux
-x86-64 only.
+Profiles: `portable` (x86-64 baseline), `zen2`, `zen3`, `zen4`, `native`,
+`generic` (no architecture flags). Zen 2 targets LPM's Ryzen 4500U baseline.
+Run architecture-specific binaries only on compatible CPUs. Native code
+emission currently supports Linux/System V x86-64 with 64-bit intmax_t.
+Other architectures continue through the interpreter. The generated scalar
+code requires only baseline x86-64 instructions, including an ENDBR64 entry;
+there is no AVX requirement in the transparent arithmetic path.
 
-`CC`, `CFLAGS`, `LDFLAGS`, `PREFIX`, `JOBS` and `LPM_LTO=1` customize builds.
-No fast-math flags or global ISA changes are applied by default. `-O3` and CPU
-profiles are tuning choices, not proof of a speedup. The build script cleans
-objects before rebuilding so changes of optimization flags take effect.
-Bash's supported upstream configure/Make build remains in use.
+The build uses `-O3` and supports `CC`, `CFLAGS`, `LDFLAGS`, `PREFIX`, `JOBS`,
+`LPM_LTO=1`, and the earlier optional GCC PGO modes. No fast-math flags are
+used. Build flags are tuning choices, not promises of a speedup. PGO and LTO
+combinations have not been validated for this change.
 
-Optional GCC profile-guided build (same absolute directory in both passes):
+Optional two-pass GCC PGO, retaining the same absolute build directory:
 
 ```bash
 LPM_PGO=generate lpm/build.sh zen2 ../build-zen2
-make -C ../build-zen2 tests
-# Also run representative, trusted LPM build scripts with that generated Bash.
+# Run representative, trusted workloads using ../build-zen2/bash.
 LPM_PGO=use lpm/build.sh zen2 ../build-zen2
 ```
 
-Do not train a PGO build on untrusted scripts. PGO/LTO build combinations are
-available for evaluation but are not yet validated in this milestone. Missing
-profile warnings mean some paths were not trained; evaluate the resulting
-binary against your actual workload.
-
-## Numeric JIT
+## Transparent arithmetic acceleration
 
 ```bash
-bash=../build-portable/bash
-"$bash" --noprofile --norc
-# Commands below run inside the newly built shell:
+# No enable -f or script changes are required:
+sum=0
+for ((i=0; i<100000; i++)); do
+    ((sum += i*3+7))
+done
+lpmjitctl stats
+```
+
+The `evalexp` integration serves `$((...))`, arithmetic commands, `let`, and
+arithmetic loop expressions. A 64-entry, direct-mapped cache observes exact
+expression text. After eight lookups, an eligible expression is compiled once
+and reused until eviction or `lpmjitctl clear`. Unsupported syntax and failed
+executable allocation are negatively cached. Every execution reloads and
+checks variable state; compiled code holds no shell variable pointers.
+
+Supported syntax:
+
+- Canonical decimal constants and ASCII scalar variable names.
+- Parentheses, unary `+`, `-`, `!`, `~`.
+- Binary `+`, `-`, `*`, `&`, `^`, `|`, `<<`, `>>`.
+- Signed comparisons `<`, `>`, `<=`, `>=`, `==`, `!=`.
+- A single outer scalar assignment: `=`, `+=`, `-=`, `*=`, `&=`, `^=`, `|=`,
+  `<<=`, `>>=`; or outer `x++`, `x--`, `++x`, `--x`.
+
+The RHS cannot contain assignments or other side effects. Integer operations
+wrap modulo 2^64; comparisons use signed values, right shifts are arithmetic,
+and x86-64 shift counts use the low six bits, as in the reference build.
+
+Guards accept only existing scalar variables whose current values are
+canonical signed/unsigned decimal integers. Namerefs, arrays, recursive
+arithmetic strings, unset/invisible variables, dynamic callbacks and custom
+assignment callbacks fall back. Readonly or attributed write targets fall
+back. A rejected guard never invokes a dynamic-value callback: `RANDOM`, for
+example, is read only by the original evaluator. All native-path assignment
+results are committed through Bash's existing `expr_bind_variable` function.
+
+Division, remainder, exponentiation, short-circuit operators, ternaries,
+commas, nested side effects, array expressions, alternate numeric bases and
+unsupported syntax continue through Bash. Native execution is also bypassed
+for nested recursive arithmetic, privileged/restricted shells, POSIX mode,
+and compatibility levels below 5.3. These are runtime fallback conditions;
+they do not change the expression's interpreted behavior.
+
+Limits per cached expression: 511 bytes, 128 bytecode operations, 16 variable
+names (63 bytes each), 32 recursive parsing levels. Cache misses/collisions
+may reduce performance without changing results.
+
+## Controls and memory
+
+```bash
+shopt -u arithmetic_jit
+shopt -s arithmetic_jit
+lpmjitctl stats
+lpmjitctl clear
+```
+
+The shopt flag defaults to on. `stats` reports compilation, actual native
+executions, guarded fallbacks, syntax rejection and unavailable executable
+memory. Clearing releases cached code and resets counters. Disabling bypasses
+the cache but retains entries until clear, eviction or process exit.
+
+Code is emitted into writable, non-executable anonymous memory, then changed
+to read-only/executable before use. It is never writable and executable at
+once. Allocation/protection failure returns to Bash; no permission relaxation
+is attempted. Generated code uses caller-saved registers and balanced stack
+temporaries. Child processes inherit independent mapping/state snapshots;
+exit and eviction release mappings. Trap dispatch, exit status, scope and
+shell control flow remain managed by Bash.
+
+## Earlier explicit extensions
+
+The shared extension remains available for numeric batches:
+
+```bash
 enable -f ../build-portable/lpm-accel.so lpmjit
-lpmjit 'x*x+3*x+7' 0 1 2 3  # 7, 11, 17, 25 on separate lines
-lpmjit --interpret 'x*x+3*x+7' 0 1 2 3
-```
-
-Expressions accept decimal constants, `x`, parentheses, unary `+`/`-` and
-binary `+`, `-`, `*`. Arguments are strict decimal integers (optional sign).
-Constants have to fit unsigned 64 bits; leading zeros remain decimal. Results
-wrap modulo 2^64 and print as signed two's complement, matching ordinary Bash
-arithmetic for the supported decimal operations. This extension deliberately
-does not accept Bash's octal/hex syntax, variable side effects, division,
-substitutions or general shell syntax. Invalid inputs fail without numeric
-output. Numeric extensions therefore have their own explicit input contract;
-they do not replace `$((...))`.
-
-The expression is parsed once into bounded bytecode per builtin invocation.
-On x86-64, a small emitter creates native code in writable memory and changes
-it to executable/read-only before use (never writable and executable at once).
-Generated code uses only caller-saved registers and balanced temporary stack
-slots, with ENDBR64 at entry for IBT. If executable allocation is denied,
-execution falls back to bytecode. Memory is released before output. There is
-no compiler subprocess, persistent code cache or code loaded from disk.
-
-Limits: 4096 expression bytes, 1024 bytecode operations, 64 recursive parsing
-levels. Inputs must fit the argument/memory limits of the shell process. A
-large batch amortizes compile cost. Short batches may be faster interpreted.
-
-## SIMD and GPU batch arithmetic
-
-```bash
 enable -f ../build-portable/lpm-accel.so lpmvec
-lpmvec 3 7 0 1 2 3          # input*3+7, on the CPU
-lpmvec --gpu 3 7 0 1 2 3    # explicitly require an OpenCL GPU
+lpmjit 'x*x+3*x+7' 0 1 2 3
+lpmjit --interpret 'x*x+3*x+7' 0 1 2 3
+lpmvec 3 7 0 1 2 3
+lpmvec --gpu 3 7 0 1 2 3
 ```
 
-CPU evaluation uses a runtime-dispatched AVX2 implementation of exact 64-bit
-multiplication/addition, including high/low limb products and a scalar tail.
-It works without alignment constraints or out-of-bounds vector loads.
+These commands have their own explicit decimal-input contracts. The older
+batch `lpmjit` supports `x`, decimal constants, parentheses, unary `+`/`-`,
+and binary `+`/`-`/`*`; its code is released after each invocation. Its
+interpreter fallback differs from the core cache's upstream Bash fallback.
+`lpmvec` computes `input*multiplier+addend` modulo 2^64, using runtime AVX2
+CPU dispatch and a scalar tail by default. Results print as signed values.
 
-The GPU backend dynamically loads `libOpenCL.so.1`, selects an OpenCL GPU,
-compiles a fixed OpenCL 1.2 unsigned integer kernel, uploads the batch and
-returns results only after successful readback. There is no user-supplied GPU
-source. Failure returns nonzero without numeric output or silent CPU fallback.
-No OpenCL SDK is needed at build time; execution needs an installed GPU driver
-and an OpenCL runtime supporting its GPU. AMD vendor support must be verified
-on the target Renoir machine. This is an **experimental, unverified device
-path**, not a measured GPU optimization. There is no device/kernel cache or
-automatic threshold: setup, transfer and text output can cost more than the
-arithmetic. CPU is the default.
+`--gpu` explicitly requires an OpenCL GPU and dynamically loads the runtime.
+GPU setup, compilation, transfers and text output can exceed CPU compute
+cost. There is no automatic GPU offload or CPU substitution on GPU failure.
+Device execution remains unverified in this environment, including target
+Renoir driver compatibility. This change does not modify that backend.
 
-## Validation
+## Scope and validation
 
-```bash
-python3 lpm/test.py ../build-portable/bash ../build-portable/lpm-accel.so
-cc -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -Ilpm \
-  lpm/test-engine.c lpm/jit.c lpm/vector.c -o ../test-engine
-../test-engine
-make -C ../build-portable tests
-python3 lpm/benchmark.py ../build-portable
-```
+See VALIDATION.md and the test commands recorded there. This implementation
+accelerates guarded arithmetic fragments in scripts. Whole shell functions,
+loop bodies, pipelines and arbitrary commands are not compiled into native
+control flow. It does not accelerate external programs launched by Bash.
 
-The differential suite compares generated native code, interpreted bytecode,
-Bash arithmetic and Python integer results, checks rejected inputs, and tests
-SIMD lengths/tails and overflow. The engine test asserts that native code was
-actually generated on x86-64. When a GPU is unavailable, only its failure path
-is tested; no device correctness or performance conclusion follows.
-GitHub Actions repeats portable/native builds, sanitizers and upstream tests.
-Upstream's test harness prints diffs and can still return zero: inspect its
-log. Locale, terminal, root-user and environment differences require comparison
-with an unmodified build from the same upstream commit.
-
-## Remaining work
-
-A production Bash script JIT must integrate with parsed commands and support
-guarded deoptimization for dynamic variables, arrays, traps, DEBUG/RETURN,
-`set -e`/`-u`, scope, redirections, command substitutions and job control.
-This milestone provides no automatic hot-loop detection or native compilation
-of existing scripts. Those features need dedicated design and differential
-coverage before interpreter replacement. Next steps are a persistent bounded
-expression cache, target-machine PGO/benchmarks, real-device OpenCL validation,
-and then guarded compilation of carefully selected arithmetic ASTs.
-
-All added code is GPL-3.0-or-later; see upstream COPYING. The original Bash
-README and copyright notices remain intact. Do not replace the system's
-`/bin/bash` with this experimental build until target-system validation.
+All added code is GPL-3.0-or-later. Original Bash license/copyright notices
+remain intact. Validate the target installation before replacing a system
+shell.

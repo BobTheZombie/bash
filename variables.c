@@ -2002,7 +2002,7 @@ find_variable_internal (const char *name, int flags)
   if (var == 0)
     return ((SHELL_VAR *)NULL);
 
-  return (var->dynamic_value ? (*(var->dynamic_value)) (var) : var);
+  return (var->dynamic_value && (flags & FV_NODYNAMIC) == 0 ? (*(var->dynamic_value)) (var) : var);
 }
 
 /* Look up and resolve the chain of nameref variables starting at V all the
@@ -2358,7 +2358,19 @@ find_shell_variable (const char *name)
   return (var->dynamic_value ? (*(var->dynamic_value)) (var) : var);
 }
 
-/* Look up the variable entry named NAME.  Returns the entry or NULL. */
+/* Read-only lookup used by arithmetic JIT guards. Do not invoke dynamic
+   callbacks or follow namerefs: rejected guards must have no side effects. */
+SHELL_VAR *
+find_variable_for_jit (const char *name)
+{
+  int flags = FV_NODYNAMIC;
+  last_table_searched = 0;
+  if (expanding_redir == 0 && (assigning_in_environment || executing_builtin))
+    flags |= FV_FORCETEMPENV;
+  return find_variable_internal (name, flags);
+}
+
+/* Look up the variable entry named NAME. Returns the entry or NULL. */
 SHELL_VAR *
 find_variable (const char *name)
 {

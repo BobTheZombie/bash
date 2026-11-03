@@ -64,6 +64,15 @@ Exit Status:
 If the last ARG evaluates to 0, let returns 1; let returns 0 otherwise.
 $END
 
+$BUILTIN lpmjitctl
+$FUNCTION lpmjitctl_builtin
+$SHORT_DOC lpmjitctl stats|clear
+Inspect or clear the bounded CPU arithmetic JIT cache.
+
+Use shopt -s arithmetic_jit or shopt -u arithmetic_jit to enable or disable
+native acceleration. Unsupported syntax or variable state uses the evaluator.
+$END
+
 #include <config.h>
 
 #if defined (HAVE_UNISTD_H)
@@ -76,6 +85,7 @@ $END
 #include "../bashintl.h"
 
 #include "../shell.h"
+#include "../lpm-jit.h"
 #include "common.h"
 
 /* Arithmetic LET function. */
@@ -127,3 +137,9 @@ exp_builtin (WORD_LIST *list)
   return (((ret == 0) || (expok == 0)) ? EXECUTION_FAILURE : EXECUTION_SUCCESS);
 }
 #endif
+
+int
+lpmjitctl_builtin (WORD_LIST *list)
+{
+  return lpm_jit_control (list);
+}

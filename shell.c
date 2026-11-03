@@ -51,6 +51,7 @@
 #define NEED_SH_SETLINEBUF_DECL		/* used in externs.h */
 
 #include "shell.h"
+#include "lpm-jit.h"
 #include "parser.h"
 #include "flags.h"
 #include "trap.h"
@@ -1038,6 +1039,7 @@ exit_shell (int s)
 void
 sh_exit (int s)
 {
+  lpm_jit_shutdown ();
 #if defined (MALLOC_DEBUG) && defined (USING_BASH_MALLOC)
   if (malloc_trace_at_exit && (subshell_environment & (SUBSHELL_COMSUB|SUBSHELL_PROCSUB)) == 0)
     trace_malloc_stats (get_name_for_error (), NULL);

@@ -20,5 +20,15 @@ jobs:
           "$RUNNER_TEMP/test-engine"
       - name: Arithmetic differential tests
         run: python3 lpm/test.py "$RUNNER_TEMP/bash-build/bash" "$RUNNER_TEMP/bash-build/lpm-accel.so"
+      - name: Integrated native arithmetic and parser bounds
+        run: |
+          cc -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer -I. lpm/test-arith-engine.c lpm-arith.c -o "$RUNNER_TEMP/test-arith"
+          "$RUNNER_TEMP/test-arith"
+          python3 lpm/test-integrated.py "$RUNNER_TEMP/bash-build/bash"
+      - name: Executable-memory denial falls back to Bash
+        run: |
+          cc -O2 -Wall -Wextra -Werror -shared -fPIC lpm/test-deny-exec.c -ldl -o "$RUNNER_TEMP/deny-exec.so"
+          LD_PRELOAD="$RUNNER_TEMP/deny-exec.so" "$RUNNER_TEMP/bash-build/bash" -c 'x=0; for ((i=0;i<100;i++)); do ((x+=i)); done; [[ $x == 4950 ]] || exit 1; lpmjitctl stats' > "$RUNNER_TEMP/denied.log"
+          grep -Eq 'executed=0 .*unavailable=[1-9]' "$RUNNER_TEMP/denied.log"
       - name: Upstream suite
         run: make -C "$RUNNER_TEMP/bash-build" tests

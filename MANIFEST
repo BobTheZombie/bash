@@ -1720,3 +1720,34 @@ tests/misc/wait-bg.tests	f
 #examples/scripts.noah/string.bash	f
 #examples/scripts.noah/stty.bash	f
 #examples/scripts.noah/y_or_n_p.bash	f
+
+# LPM CPU arithmetic JIT, batch extensions, tests and documentation.
+.github	d
+lpm	d
+.github/workflows	d
+lpm/validation	d
+.github/workflows/lpm-acceleration.yml	f
+README.md	f
+lpm-arith.c	f
+lpm-arith.h	f
+lpm-jit.c	f
+lpm-jit.h	f
+lpm/.gitignore	f
+lpm/README.md	f
+lpm/VALIDATION.md	f
+lpm/accel.h	f
+lpm/benchmark-integrated.py	f
+lpm/benchmark.py	f
+lpm/build.sh	f	755
+lpm/builtins.c	f
+lpm/gpu.c	f
+lpm/jit.c	f
+lpm/test-arith-engine.c	f
+lpm/test-deny-exec.c	f
+lpm/test-engine.c	f
+lpm/test-integrated.py	f
+lpm/test.py	f
+lpm/validation/portable-tests.log	f
+lpm/validation/reference-tests.log	f
+lpm/validation/regression-comparison.diff	f
+lpm/vector.c	f

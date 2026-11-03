@@ -285,6 +285,7 @@ extern SHELL_VAR *find_function (const char *);
 extern FUNCTION_DEF *find_function_def (const char *);
 extern SHELL_VAR *find_variable (const char *);
 extern SHELL_VAR *find_variable_noref (const char *);
+extern SHELL_VAR *find_variable_for_jit (const char *);
 extern SHELL_VAR *find_variable_last_nameref (const char *, int);
 extern SHELL_VAR *find_global_variable_last_nameref (const char *, int);
 extern SHELL_VAR *find_variable_nameref (SHELL_VAR *);

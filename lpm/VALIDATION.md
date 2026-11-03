@@ -1,4 +1,64 @@
-# First milestone validation
+# Integrated CPU arithmetic JIT validation
+
+Local environment: Linux x86-64, GCC 13.3.0. The independent reference was
+built from the previous published commit, `99d4560`, using the same portable
+`-O3` flags and allocator configuration. Results below do not claim Ryzen
+hardware or GPU measurements.
+
+- Portable and Zen 2 builds completed.
+- Differential integration suite compared JIT on, JIT off and the independent
+  reference, including exit status, stdout and diagnostics. Each profile's
+  run observed 1,065 compiled entries and 11,893 native evaluations across
+  generated expression tests, plus assignment/state/error/control cases.
+- Cases include every supported operator and assignment, overflow, shifts,
+  variable type/value changes, arrays, namerefs, readonly and integer
+  attributes, local scope, temporary environments, subshells, command
+  substitutions, RANDOM sequencing, nounset, errexit, DEBUG/RETURN traps,
+  POSIX/compatibility mode, invalid syntax after warmup, disabling and clear.
+- Standalone native engine tests passed under ASan/UBSan: randomized operators
+  and assignments, 10,000 parser-bound/fuzz inputs, and 300 cached expression
+  evictions. Leak detection was disabled because process inspection is
+  blocked in this environment; no LeakSanitizer result is claimed.
+- A preload that denies executable `mprotect` produced the correct loop
+  result through Bash: zero native executions and three unavailable entries.
+- Added engine and shell guards compiled with `-Wall -Wextra -Werror`.
+- The original batch arithmetic/SIMD differential suite still passed.
+- Full upstream suites completed on the integrated portable build and the
+  reference. Arithmetic output matched. Additional differences were the new
+  builtin/help layout, shopt/completion/BASHOPTS listings and timing-dependent
+  broken-pipe diagnostics, alongside pre-existing environment/locale/terminal
+  differences. Expected listings were updated only for the new public API.
+  Upstream's harness may exit zero despite printed diffs; logs were inspected.
+- PGO/LTO combinations, non-x86 architectures and GPU execution are not
+  validated by this change.
+
+A 300,000-iteration existing Bash loop, `((sum+=i*3+7))`, was timed with
+arithmetic JIT off and on in the same portable executable. Seven runs per
+mode alternated execution order; output was checked against `135001650000`.
+
+| Mode | Median wall time |
+|---|---:|
+| Interpreter | 0.479049 s |
+| Integrated native arithmetic | 0.278768 s |
+
+The observed ratio was 1.718x for this workload. It does not establish a
+speedup for I/O-heavy scripts, external commands or arbitrary shell programs.
+
+Reproduce from the repository root:
+
+```bash
+lpm/build.sh portable ../build-portable
+python3 lpm/test-integrated.py ../build-portable/bash /path/to/reference/bash
+python3 lpm/test.py ../build-portable/bash ../build-portable/lpm-accel.so
+cc -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined \
+  -fno-omit-frame-pointer -I. lpm/test-arith-engine.c lpm-arith.c -o ../test-arith
+../test-arith
+make -C ../build-portable tests
+python3 lpm/benchmark-integrated.py ../build-portable/bash
+```
+
+## Original batch-only milestone
+
 
 Environment: Linux x86-64, GCC 13.3.0. Upstream source commit is recorded in
 README.md. All results below are local runs, not GitHub Actions results.
